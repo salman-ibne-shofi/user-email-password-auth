@@ -1,4 +1,8 @@
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import {
+	createUserWithEmailAndPassword,
+	sendEmailVerification,
+	updateProfile,
+} from "firebase/auth";
 import auth from "../../firebase/firebase.config";
 import { useState } from "react";
 import { FaEye } from "react-icons/fa";
@@ -12,10 +16,11 @@ const Register = () => {
 
 	const handleRegister = (e) => {
 		e.preventDefault();
+		const name = e.target.name.value;
 		const email = e.target.email.value;
 		const password = e.target.password.value;
 		const accepted = e.target.terms.checked;
-		console.log(email, password, accepted);
+		console.log(name, email, password, accepted);
 
 		// reset error
 		setRegisterError("");
@@ -42,11 +47,18 @@ const Register = () => {
 				console.log(result.user);
 				setSuccess("User Created Successfully.");
 
-                // send verification email:
-                sendEmailVerification(result.user)
-                .then(()=>{
-                    alert('Please check your email and verify your account')
-                })
+				// update profile
+				updateProfile(result.user, {
+					displayName: name,
+					photoURL: "https://example.com/jane-q-user/profile.jpg",
+				})
+					.then(() => console.log("profile updated"))
+					.catch();
+
+				// send verification email:
+				sendEmailVerification(result.user).then(() => {
+					alert("Please check your email and verify your account");
+				});
 			})
 			.catch((error) => {
 				console.error(error);
@@ -59,6 +71,15 @@ const Register = () => {
 			<div className="mx-auto md:w-1/2">
 				<h2 className="text-3xl mb-8">Please Register</h2>
 				<form onSubmit={handleRegister}>
+					<input
+						className="mb-4 w-full py-2 px-4"
+						type="text"
+						name="name"
+						placeholder="Your Name"
+						id=""
+						required
+					/>
+					<br />
 					<input
 						className="mb-4 w-full py-2 px-4"
 						type="email"
@@ -106,7 +127,10 @@ const Register = () => {
 					<p className="text-red-700">{registerError}</p>
 				)}
 				{success && <p className="text-green-600">{success}</p>}
-                <p>Already have an account? Please <Link to="/login">Login</Link></p>
+				<p>
+					Already have an account? Please{" "}
+					<Link to="/login">Login</Link>
+				</p>
 			</div>
 		</div>
 	);
